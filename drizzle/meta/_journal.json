@@ -1,0 +1,62 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1789676946972,
+      "tag": "0000_regular_the_hand",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1789679490496,
+      "tag": "0001_perpetual_exodus",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1790068409207,
+      "tag": "0002_omniscient_skin",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1790090612006,
+      "tag": "0003_complete_landau",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1790092007603,
+      "tag": "0004_puzzling_ghost_rider",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1790092690949,
+      "tag": "0005_clammy_starhawk",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1790117264011,
+      "tag": "0006_majestic_hedge_knight",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1791740313762,
+      "tag": "0007_flippant_riptide",
+      "breakpoints": true
+    }
+  ]
+}

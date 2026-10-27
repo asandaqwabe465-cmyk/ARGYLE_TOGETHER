@@ -1,0 +1,2 @@
+# Google Apps Script property name only; configure privately.
+RELAY_SECRET=
