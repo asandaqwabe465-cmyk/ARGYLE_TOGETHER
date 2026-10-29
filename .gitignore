@@ -50,3 +50,6 @@ next-env.d.ts
 # Local document drafts and invitation-code handoffs
 /tmp/
 /output/
+
+# Account-specific standalone Cloudflare deployment settings
+/wrangler.cloudflare.local.json
