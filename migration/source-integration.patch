@@ -1,0 +1,30 @@
+--- a/lib/server.ts
++++ b/lib/server.ts
+@@ -1,9 +1,10 @@
+ import {gmailReady,sendGmailCode,GmailError} from './gmail';
++import {migrationGate,type MigrationBindings} from '../migration/source-export';
+ import {env,waitUntil} from 'cloudflare:workers';
+ import {pushReady,validEndpoint,subscriptionId,sendPush,enqueuePush,drainPush,type PushBindings} from './push';
+ import {PRIVACY_VERSION,ESCORT_WAIT,canRequestEscort,validLocation,LOCATION_TTL,cleanEmail} from './policy';
+ import {panicCoordinates} from './panic';
+-type Bindings=PushBindings&{DB:D1Database;BUCKET:R2Bucket;RESEND_API_KEY?:string;EMAIL_FROM?:string;RESIDENCE_INVITE_CODE?:string;AUTH_SECRET?:string;ESCORT_EMAILS?:string;ADMIN_EMAIL?:string;APP_ORIGIN?:string;EMAIL_PROVIDER?:string;GMAIL_RELAY_URL?:string;GMAIL_RELAY_SECRET?:string};
++type Bindings=PushBindings&MigrationBindings&{DB:D1Database;BUCKET:R2Bucket;RESEND_API_KEY?:string;EMAIL_FROM?:string;RESIDENCE_INVITE_CODE?:string;AUTH_SECRET?:string;ESCORT_EMAILS?:string;ADMIN_EMAIL?:string;APP_ORIGIN?:string;EMAIL_PROVIDER?:string;GMAIL_RELAY_URL?:string;GMAIL_RELAY_SECRET?:string};
+ type User={id:string;email:string;name:string;phone:string;photo:string;complete:number;escort?:boolean;admin?:boolean;volunteerStatus?:string};
+ class HttpError extends Error{constructor(public status:number,message:string){super(message)}}
+ function need(condition:unknown,message:string,status=400):asserts condition{if(!condition)throw new HttpError(status,message)}
+@@ -48,5 +49,14 @@
+ async function cleanup(){const n=Date.now();await db().batch([stmt('DELETE FROM locations WHERE updated<? OR trip_id IN (SELECT id FROM trips WHERE departure<? OR status NOT IN (\'open\',\'active\'))',n-LOCATION_TTL,n-14400000),stmt('DELETE FROM sessions WHERE expires<?',n),stmt('DELETE FROM challenges WHERE expires<?',n),stmt('DELETE FROM limits WHERE expires<?',n)])}
+-export async function handle(req:Request){try{return await dispatch(req)}catch(e){if(e instanceof HttpError||e instanceof GmailError)return result({error:e.message},e.status);console.error('Argyle request failed',e instanceof Error?e.message:'unknown');return result({error:'This service is temporarily unavailable. Please try again.'},503)}}
++export async function handle(req:Request){try{
++ const gate=await migrationGate(req,E(),async()=>{
++  const e=E();
++  if(!e.AUTH_SECRET||e.AUTH_SECRET.length<32||!e.ADMIN_EMAIL||!cleanEmail(e.ADMIN_EMAIL))return false;
++  const u=await user(req,false);
++  return !!u?.admin;
++ });
++ if(gate)return gate;
++ return await dispatch(req);
++}catch(e){if(e instanceof HttpError||e instanceof GmailError)return result({error:e.message},e.status);console.error('Argyle request failed',e instanceof Error?e.message:'unknown');return result({error:'This service is temporarily unavailable. Please try again.'},503)}}
+ async function dispatch(req:Request):Promise<Response>{
+  const url=new URL(req.url),path=url.pathname.replace(/^\/api\//,'').split('/'),method=req.method,n=Date.now();
+  if(method==='POST'){const origin=req.headers.get('origin');need(origin===url.origin,'This request must come from the app.',403);need(Number(req.headers.get('content-length')||0)<=(path[0]==='photo'?5*1024*1024+64*1024:1200000),'Upload is too large.',413)}

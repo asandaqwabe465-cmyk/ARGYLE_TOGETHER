@@ -86,10 +86,15 @@ The user has chosen to retain existing accounts, trip history and photos.
 This source preparation does not establish that a complete supported export from
 the original Site is available.
 
-Obtain an authorised, consistent database export and complete R2 object export
-from the original owner/provider, using a supported export route. If that route
-is unavailable, resolve it with Support before planning a live cutover. Transfer
-resident data privately; do not put it in GitHub or source attachments.
+Support has not supplied a supported export procedure. A custom source-side
+export proposal is prepared in `migration/OWNER-REVIEW.md`; it is deliberately
+not connected to the app's routes. The original owner must review and authorise
+installation, data scope, a private transfer and any maintenance window before
+it is used. This is separate from a Sites-provided backup or an ownership
+transfer, and live bucket access and export consistency remain unverified.
+Obtain an authorised, consistent database export and complete photo export
+before planning a live cutover. Transfer resident data privately; do not put it
+in GitHub or source attachments.
 
 Before importing, inspect whether the export includes schema and migration
 metadata. Do not apply table-creation migrations over a full schema dump. Restore
