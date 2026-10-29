@@ -50,6 +50,13 @@ computer, encrypted transfer to the user responsible for the named destination,
 and retention/deletion of temporary copies. Do not attach an actual export to a
 chat or commit it to GitHub. This source-only review packet contains no data.
 
+The user has selected their own Windows computer as the receiver. The proposed
+arrangement is a direct authenticated HTTPS download into private Ubuntu/WSL
+storage on that computer, with no chat attachment or public-file transfer.
+WSL readiness, disk protection and a private organiser-session handoff remain
+to be verified there. See `WINDOWS-RECEIVER.md`; selection of the computer does
+not itself approve the live export or establish those protections.
+
 ## Proposed installation, after approval
 
 1. On the original account, compare `lib/server.ts` with the expected source and
@@ -142,11 +149,14 @@ private data and need the same protection as complete ones.
 
 Do not import just because a download directory exists. Review `COMPLETE.json`,
 manifest and checksum checks locally without posting records or credentials.
-Agree on an encrypted private transfer method and verify its integrity at the
-destination. Import tooling, schema reconciliation, foreign-key checks, email
-and notification configuration, and an end-to-end restore rehearsal remain
-separate work. Do not run table-creation migrations over a schema-containing
-backup without reconciling it first.
+Agree on the private transfer method and verify its integrity at the destination.
+`migration/rehearse-import.mjs` now provides an offline restore rehearsal using
+trusted local migrations and verified export files. It checks schema, row counts,
+foreign keys and photo references, then writes a local SQLite database and photo
+copy. It performs no remote import. See `WINDOWS-RECEIVER.md` for its command.
+Real export validation, destination import, email/notification configuration and
+acceptance tests remain separate work. Do not run table-creation migrations over
+a schema-containing backup without reconciling it first.
 
 ## Cleanup and rollback
 
@@ -168,7 +178,7 @@ already installed:
 
 ```sh
 git apply --check migration/source-integration.patch
-node --test tests/source-export.test.mjs tests/source-integration.test.mjs tests/download-export.test.mjs
+node --test tests/source-export.test.mjs tests/source-integration.test.mjs tests/download-export.test.mjs tests/import-rehearsal.test.mjs
 node node_modules/typescript/bin/tsc --noEmit
 ```
 

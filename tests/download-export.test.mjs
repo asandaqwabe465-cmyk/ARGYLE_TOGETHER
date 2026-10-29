@@ -5,7 +5,9 @@ import os from 'node:os';
 import path from 'node:path';
 import ts from 'typescript';
 import {Miniflare} from 'miniflare';
+import {DatabaseSync} from 'node:sqlite';
 import {downloadExport, TABLES, sha256, parseArguments, validateSource, ExportError} from '../migration/download-export.mjs';
+import {rehearseImport} from '../migration/rehearse-import.mjs';
 
 const source = 'https://original-site.example';
 const clock = Date.parse('2026-10-29T12:00:00Z');
@@ -247,4 +249,19 @@ test('actual source helper and downloader round-trip 201 users through paginated
   assert.equal(calls.filter(url => url.pathname.endsWith('/table') && url.searchParams.get('name') === 'users').length, 6);
   assert.equal((await readdir(path.join(output, 'tables'))).includes('sessions'), false);
   assert.equal(JSON.parse(await readFile(path.join(output, 'COMPLETE.json'))).tables.find(table => table.name === 'users').count, 201);
+  // Rehearse importing the real local D1/R2 export, rather than just a hand-built
+  // SQLite manifest: source schema serialisation must remain compatible too.
+  const restoredOutput = path.join(root, 'import-rehearsal');
+  assert.deepEqual(await rehearseImport({exportDir: output, output: restoredOutput, expectedSource: source}), {output: restoredOutput, tables: 10, objects: 1});
+  const restored = new DatabaseSync(path.join(restoredOutput, 'restored.sqlite'), {readOnly: true});
+  try {
+    assert.equal(restored.prepare('SELECT COUNT(*) AS n FROM users').get().n, 201);
+    assert.equal(restored.prepare('SELECT owner_id FROM trips WHERE id=?').get('synthetic-trip').owner_id, 'synthetic-0');
+    assert.equal(restored.prepare('SELECT trip_id FROM replies WHERE id=?').get('synthetic-reply').trip_id, 'synthetic-trip');
+    assert.equal(restored.prepare('SELECT COUNT(*) AS n FROM sessions').get().n, 0);
+    assert.deepEqual(restored.prepare('PRAGMA foreign_key_check').all(), []);
+  } finally {restored.close();}
+  assert.deepEqual(await readFile(path.join(restoredOutput, 'objects', sha256('profiles/synthetic-0') + '.bin')), photo);
+  assert.deepEqual(JSON.parse(await readFile(path.join(restoredOutput, 'inventory.json'))), inventory);
+  assert.equal(JSON.parse(await readFile(path.join(restoredOutput, 'REHEARSAL.json'))).remoteModified, false);
 });
