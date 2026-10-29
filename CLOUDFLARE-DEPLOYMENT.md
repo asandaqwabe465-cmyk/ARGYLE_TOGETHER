@@ -18,8 +18,9 @@ transfer its ownership, URL, database, photos, secrets or Google account.
   configuration before invoking Wrangler.
 - The app's resident sign-in is its own email-code flow. It does not require
   ChatGPT sign-in. Existing starter helpers are unrelated to resident accounts.
-- The application code and original `.openai/hosting.json` are unchanged, so the
-  original owner can continue managing the existing Site.
+- Resident features are preserved. This hosting branch updates the privacy
+  notice for Cloudflare hosting and describes verification email conditionally.
+  The original `.openai/hosting.json` and original Site remain unchanged.
 
 ## Local validation without a Cloudflare account
 
@@ -137,8 +138,7 @@ That last command publishes to Cloudflare. Do not use it as a local check or
 assume it imports data or completes email configuration. Public access should
 be announced only after testing login, organiser permissions, restored photos,
 trip/chat/history, privacy requests, actual email delivery and real-device push
-with consenting test users. Update the privacy notice's hosting description and
-review provider/storage details for the new deployment before launch; the
-existing notice currently describes Sites hosting. Confirm the new address is
+with consenting test users. Review provider/storage details and the privacy
+notice for the new deployment before launch. Confirm the new address is
 used in emails and resident instructions. The historical PDF generator needs
 review before regeneration and contains an old URL.
